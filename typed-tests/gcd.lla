@@ -1,0 +1,18 @@
+let gcd (a : int ref) (b : int ref) (k : int ref) : unit =
+  while !a > 0 && !b > 0 do
+    if !a > !b then a := !a mod !b else b := !b mod !a
+  done;
+  k := !a + !b
+
+let main : unit =
+  let mutable a : int
+  and mutable b : int
+  and mutable c : int in
+  print_string "Give the first number: ";
+  a := read_int ();
+  print_string "\nGive the second number: ";
+  b := read_int ();
+  print_string "\nGCD = ";
+  gcd a b c;
+  print_int !c;
+  print_string "\n"

@@ -1,0 +1,59 @@
+type nlist =
+    Nil
+  | Cons1 of int nlist
+  | Cons2 of nlist nlist
+
+let rec concat (s : nlist) (t : nlist) : nlist =
+  match s with
+    Nil -> t
+  | Cons1 m n -> Cons1 m (concat n t)
+  end
+
+let insert1 (n : int) (s : nlist ref) : unit = s := Cons1 n !s
+
+let insert2 (n : nlist ref) (s : nlist ref) : unit = s := Cons2 !n !s
+
+let rec auxprintnl (s : nlist) : unit =
+  match s with
+    Nil -> ()
+  | Cons1 m n -> print_string " -> ";
+                 print_int m;
+                 auxprintnl n
+  | Cons2 m n ->
+      print_string " -> { ";
+      auxprintnl m;
+      print_string " } ";
+      auxprintnl n
+  end
+
+let printnl (s : nlist) : unit =
+  match s with
+    Nil -> print_string "h lista einai kenh"
+  | Cons1 m n -> auxprintnl s
+  | Cons2 m n -> auxprintnl m;
+                 auxprintnl n
+  end
+
+let rec flatten (s : nlist) : nlist =
+  match s with
+    Nil -> Nil
+  | Cons1 m n -> Cons1 m (flatten n)
+  | Cons2 m n -> concat (flatten m) (flatten n)
+  end
+
+let main : unit =
+  let mutable l : nlist in
+  let mutable m : nlist in
+  l := Nil;
+  m := Nil;
+  insert1 6 l;
+  insert1 5 l;
+  insert2 l l;
+  insert1 9 m;
+  insert1 7 m;
+  insert2 m l;
+  insert1 3 l;
+  printnl !l;
+  print_string "\n";
+  l := flatten !l;
+  printnl !l

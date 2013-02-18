@@ -1,0 +1,15 @@
+let myenv = ref [("color", ref [("Red",[]);
+                                ("Blue", [TYPE_int; TYPE_float])]);
+                 ("car", ref [("Audi",[TYPE_userdef "car"]);
+                              ("Ferrari", []);
+                          ("Ford",[TYPE_int; TYPE_func(TYPE_int, TYPE_userdef "car")])]);
+                 ("pc", ref [("Intel", []);
+                             ("AMD", [])])]
+                         
+let nenv = [("day", [("Monday",[]);
+                     ("Tuesday",[])]);
+            ("month", [("Oct", [TYPE_int; TYPE_userdef "day"])])]
+            
+            
+            
+Format.printf "%a" print_UDTtable myenv

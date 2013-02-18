@@ -1,0 +1,2 @@
+type x =
+    U of array [*, *, *] of int

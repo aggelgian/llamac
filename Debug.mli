@@ -1,0 +1,31 @@
+(* ********************************************************************************************* *)
+(* ********************************* Type Definitions ****************************************** *)
+(* ********************************************************************************************* *)
+
+(* ********************************************************************************************* *)
+(* ********************************* Global Variables ****************************************** *)
+(* ********************************************************************************************* *)
+
+val __ASTpprint     : bool ref  (* Flag for Pretty Printing the AST          *)
+val __symbolTable   : bool ref  (* Print the Symbol Table                    *)
+val __udtTable      : bool ref  (* Print UDT table after parsing the program *)
+val __typedAst      : bool ref  (* Print the Typed AST                       *)
+val __CST           : bool ref  (* Print the Constraint Set                  *)
+val __InferredTypes : bool ref  (* Prints the Result of the Type Inference   *)
+val __Icode         : bool ref  (* Prints the Icode Quadruples               *)
+
+(* ********************************************************************************************* *)
+(* *********************************** Exceptions ********************************************** *)
+(* ********************************************************************************************* *)
+
+(* ********************************************************************************************* *)
+(* ************************************ Functions ********************************************** *)
+(* ********************************************************************************************* *)
+
+val debug_ASTpprint   : Ast.ast_program_node option ref -> unit  (* Prints the UDT table              *)
+val debug_symbolTable : unit -> unit                             (* Prints the Symbol Table           *)
+val debug_udtTable    : Udt.udtTable ref -> unit                 (* Prints the UDT table              *)
+val debug_typedAST    : Ast.ast_program_node option -> unit      (* Prints the Typed AST              *)
+val debug_CST         : unit -> unit                             (* Prints the Constraint Set         *)
+val debug_TypeInf     : TypeInference.inferedTypes -> unit       (* Prints the Type Inference Results *)
+val debug_Icode       : unit -> unit                             (* Prints the Icode Quadruples       *)

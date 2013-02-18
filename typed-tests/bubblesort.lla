@@ -1,0 +1,36 @@
+let bsort (x : array of int) : unit =
+  let swap (x : int ref) (y : int ref) : unit =
+    let t : int = !x in
+    x := !y;
+    y := t in
+  let mutable changed : bool in
+  changed := true;
+  while !changed
+    do
+    changed := false;
+    for i = 0 to
+      dim 1 x - 2 do
+      if !x[i] > !x[i + 1] then (swap x[i] x[i + 1];
+                                 changed := true)
+    done
+  done
+
+let main : unit =
+  let print_array (msg : array of char) (x : array of int) : unit =
+    print_string msg;
+    for i = 0 to
+      dim 1 x - 1 do
+      if i > 0 then print_string ", ";
+      print_int !x[i]
+    done;
+    print_string "\n" in
+  let mutable seed : int
+  and mutable x [16] : int in
+  seed := 65;
+  for i = 0 to 15 do
+    seed := (!seed * 137 + 220 + i) mod 101;
+    x[i] := !seed
+  done;
+  print_array "Initial array: " x;
+  bsort x;
+  print_array "Sprted array: " x

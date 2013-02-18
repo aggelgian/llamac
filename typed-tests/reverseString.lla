@@ -1,0 +1,10 @@
+let main : unit =
+  let reverse (s : array of char) (r : array of char) : unit =
+    let l : int = strlen s in
+    for i = 0 to l - 1 do
+      r[i] := !s[l - i - 1]
+    done;
+    r[l] := '\0' in
+  let mutable p [20] : char in
+  reverse "\n!dlrow olleH" p;
+  print_string p

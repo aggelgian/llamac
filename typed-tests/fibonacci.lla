@@ -1,0 +1,17 @@
+let rec fibo (k : int) (n : int ref) : unit = if k <= 0 then n := 0
+  else if k = 1 then n := 1
+  else
+    let mutable n1 : int
+    and mutable n2 : int in
+    fibo (k - 1) n1;
+    fibo (k - 2) n2;
+    n := !n1 + !n2
+
+let main : unit =
+  let mutable k : int
+  and mutable n : int in
+  print_string "Give k: ";
+  k := read_int ();
+  fibo !k n;
+  print_string "\nk-th Fibo-term: ";
+  print_int !n

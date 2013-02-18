@@ -1,0 +1,9 @@
+type day     = Monday | Tuesday | Wednesday | Thursday | Friday
+and hour     = Hour of int int 
+and interval = Interval of day hour hour
+
+type day = Empty
+          | Node of interval    -- the time we're talking about
+                    int         -- number of "I'm not available"
+                    tree tree   -- the two children
+

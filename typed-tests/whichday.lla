@@ -1,0 +1,383 @@
+let duration : int = 120
+
+let availability : int = 25
+
+let worst : int = 15
+
+let debug : bool = false
+
+type day =
+    Monday
+  | Tuesday
+  | Wednesday
+  | Thursday
+  | Friday
+and hour =
+    Hour of int int
+and interval =
+    Interval of day hour hour
+
+let compare_day (day1 : day) (day2 : day) : int =
+  let int_of_day (d : day) : int =
+    match d with
+      Monday -> 0
+    | Tuesday -> 1
+    | Wednesday -> 2
+    | Thursday -> 3
+    | Friday -> 4
+    end in
+  int_of_day day1 - int_of_day day2
+
+let compare_hour (h1 : hour) (h2 : hour) : int =
+  let int_of_hour (h : hour) : int =
+    match h with
+      Hour hr mn -> hr * 60 + mn
+    end in
+  int_of_hour h1 - int_of_hour h2
+
+type comparison =
+    Before
+  | After
+  | Inside
+  | Super
+  | LeftSegment
+  | RightSegment
+
+let compare_interval (intv1 : interval) (intv2 : interval) : comparison =
+  match intv1 with
+    Interval day1 hf1 ht1 ->
+      match intv2 with
+        Interval day2 hf2 ht2 ->
+          let cmp : int = compare_day day1 day2 in
+          if cmp < 0 then Before
+          else if cmp > 0 then After
+          else if compare_hour ht1 hf2 <= 0 then Before
+          else if compare_hour hf1 ht2 >= 0 then After
+          else
+            let cf : int = compare_hour hf1 hf2
+            and ct : int = compare_hour ht1 ht2 in
+            if cf <= 0 && ct >= 0 then Super
+            else if cf <= 0 && ct <= 0 then LeftSegment
+            else if cf >= 0 && ct >= 0 then RightSegment else Inside
+      end
+  end
+
+type tree =
+    Empty
+  | Node of interval int tree tree
+
+let mutable t : tree
+
+let init_tree : unit =
+  let all (d : day) : interval = Interval d (Hour 8 45) (Hour 21 0) in
+  t :=
+    Node (all Tuesday) 0 (Node (all Monday) 0 Empty Empty)
+      (Node (all Thursday) 0 Empty (Node (all Friday) 0 Empty Empty))
+
+let string_of_day (d : day) (str : array of char) : unit =
+  match d with
+    Monday -> strcpy str "Mon"
+  | Tuesday -> strcpy str "Tue"
+  | Wednesday -> strcpy str "Wed"
+  | Thursday -> strcpy str "Thu"
+  | Friday -> strcpy str "Fri"
+  end
+
+let print_day (d : day) : unit =
+  let mutable str [10] : char in
+  string_of_day d str;
+  print_string str
+
+let print_hour (h : hour) : unit =
+  match h with
+    Hour hr mn ->
+      if hr < 10 then print_string "0";
+      print_int hr;
+      print_string ":";
+      if mn < 10 then print_string "0";
+      print_int mn
+  end
+
+let print_interval (intv : interval) : unit =
+  match intv with
+    Interval d hf ht ->
+      print_day d;
+      print_string " ";
+      print_hour hf;
+      print_string " ";
+      print_hour ht;
+      if debug then
+        (print_string " (";
+         print_int (compare_hour ht hf);
+         print_string " min)")
+  end
+
+let print_tree (u : unit) : unit =
+  let rec walk (t : tree) : unit =
+    match t with
+      Empty -> ()
+    | Node intv count left right ->
+        walk left;
+        print_interval intv;
+        print_string ": ";
+        print_int count;
+        print_string " students not available\n";
+        walk right
+    end in
+  walk !t
+
+let add (intv : interval) : unit =
+  let rec walk (t : tree) : tree =
+    match t with
+      Empty -> Empty
+    | Node intv_t count left right ->
+        match compare_interval intv intv_t with
+          Before -> Node intv_t count (walk left) right
+        | After -> Node intv_t count left (walk right)
+        | Super -> Node intv_t (count + 1) (walk left) (walk right)
+        | LeftSegment ->
+            match intv with
+              Interval day1 hf1 ht1 ->
+                match intv_t with
+                  Interval day2 hf2 ht2 ->
+                    let intv_left : interval = Interval day2 hf2 ht1
+                    and intv_right : interval = Interval day2 ht1 ht2 in
+                    Node intv_left (count + 1) (walk left)
+                      (Node intv_right count Empty right)
+                end
+            end
+        | RightSegment ->
+            match intv with
+              Interval day1 hf1 ht1 ->
+                match intv_t with
+                  Interval day2 hf2 ht2 ->
+                    let intv_left : interval = Interval day2 hf2 hf1
+                    and intv_right : interval = Interval day2 hf1 ht2 in
+                    Node intv_right (count + 1)
+                      (Node intv_left count left Empty) (walk right)
+                end
+            end
+        | Inside ->
+            match intv with
+              Interval day1 hf1 ht1 ->
+                match intv_t with
+                  Interval day2 hf2 ht2 ->
+                    let intv_left : interval = Interval day2 hf2 hf1
+                    and intv_middle : interval = intv
+                    and intv_right : interval = Interval day2 ht1 ht2 in
+                    Node intv_middle (count + 1)
+                      (Node intv_left count left Empty)
+                      (Node intv_right count Empty right)
+                end
+            end
+        end
+    end in
+  t := walk !t
+
+let find_interval (mn : int) (tot : int) (lim : int) : int =
+  let mutable joining : bool
+  and mutable d_join : day
+  and mutable hf_join : hour
+  and mutable ht_join : hour
+  and mutable count_max_join : int
+  and mutable count_min_join : int in
+  let check_joined (u : unit) : int =
+    let result : int =
+      if !joining then
+        (if debug then
+           (print_string "debug: end ";
+            print_interval (Interval !d_join !hf_join !ht_join);
+            print_string " ";
+            print_int !count_min_join;
+            print_string "/";
+            print_int !count_max_join;
+            print_string "\n");
+         if compare_hour !ht_join !hf_join >= mn then
+           (print_interval (Interval !d_join !hf_join !ht_join);
+            print_string ": available/not available = ";
+            print_int (tot - !count_max_join);
+            print_string "/";
+            print_int !count_max_join;
+            if !count_min_join <> !count_max_join then
+              (print_string " with best ";
+               print_int (tot - !count_min_join);
+               print_string "/";
+               print_int !count_min_join);
+            print_string "\n";
+            1)
+         else 0)
+      else 0 in
+    joining := false;
+    result in
+  let new_joining (d : day) (hf : hour) (ht : hour) (count : int) : int =
+    if debug then
+      (print_string "debug: new ";
+       print_interval (Interval d hf ht);
+       print_string " ";
+       print_int count;
+       print_string "\n");
+    let result : int = check_joined () in
+    d_join := d;
+    hf_join := hf;
+    ht_join := ht;
+    joining := true;
+    count_max_join := count;
+    count_min_join := count;
+    result in
+  let extend_joining (ht : hour) (count : int) : int =
+    if debug then
+      (print_string "debug: extend ";
+       print_interval (Interval !d_join !hf_join !ht_join);
+       print_string " ";
+       print_int !count_min_join;
+       print_string "/";
+       print_int !count_max_join;
+       print_string " to ";
+       print_hour ht;
+       print_string " ";
+       print_int count;
+       print_string "\n");
+    ht_join := ht;
+    if count > !count_max_join then count_max_join := count
+    else if count < !count_min_join then count_min_join := count;
+    0 in
+  let rec walk (t : tree) : int =
+    match t with
+      Empty -> 0
+    | Node intv count left right ->
+        let nl : int = walk left
+        and nt : int =
+          match intv with
+            Interval d hf ht -> if tot - count < lim then check_joined ()
+              else
+              if !joining && !d_join = d && compare_hour !ht_join hf = 0 then
+                extend_joining ht count
+              else new_joining d hf ht count
+          end
+        and nr : int = walk right in
+        nl + nt + nr
+    end in
+  joining := false;
+  let count : int = walk !t in
+  count + check_joined ()
+
+let isPrefix (prf : array of char) (str : array of char) : bool =
+  let rec walk (i : int) (n : int) : bool = if i >= n then true
+    else if !str[i] = !prf[i] then walk (i + 1) n else false in
+  let lprf : int = strlen prf
+  and lstr : int = strlen str in
+  if lprf <= lstr then walk 0 lprf else false
+
+let mutable answers : int
+
+let mutable linenum : int
+
+let mutable errors : int
+
+let init_parsing : unit = answers := 0;
+                          linenum := 0;
+                          errors := 0
+
+let parseInterval (line : array of char) : unit =
+  let mutable errflag : bool in
+  errflag := false;
+  let error (msg : array of char) : unit =
+    print_string "Parse error: ";
+    print_string msg;
+    print_string "\n";
+    print_int !linenum;
+    print_string ": ";
+    print_string line;
+    print_string "\n";
+    errflag := true in
+  let skipSpaces (i : int ref) : unit = while !line[!i] = ' ' do
+                                          incr i
+                                        done in
+  let parseDay (d : day ref) (i : int ref) : unit =
+    let check (d : day) : bool =
+      let mutable str [10] : char in
+      string_of_day d str;
+      if isPrefix str line then (i := !i + strlen str;
+                                 true)
+      else false in
+    if check Monday then d := Monday
+    else if check Tuesday then d := Tuesday
+    else if check Wednesday then d := Wednesday
+    else if check Thursday then d := Thursday
+    else if check Friday then d := Friday else error "invalid day" in
+  let parseTwoDigits (i : int ref) (n : int ref) : unit =
+    let isdigit (c : char) : bool = c >= '0' && c <= '9' in
+    let digit (c : char) : int = int_of_char c - int_of_char '0' in
+    let d1 : char = !line[!i]
+    and d2 : char = !line[!i + 1] in
+    if isdigit d1 && isdigit d2 then n := 10 * digit d1 + digit d2
+    else error "invalid two digit number";
+    i := !i + 2 in
+  let parseHour (i : int ref) (l : int) (h : hour ref) : unit =
+    if l - !i < 5 then error "invalid hour"
+    else
+      let mutable hr : int
+      and mutable mn : int in
+      parseTwoDigits i hr;
+      if !line[!i] = ':' then (incr i;
+                               parseTwoDigits i mn;
+                               h := Hour !hr !mn)
+      else error "invalid hour" in
+  let mutable d : day
+  and mutable hf : hour
+  and mutable ht : hour
+  and mutable i : int in
+  i := 0;
+  parseDay d i;
+  if not !errflag then
+    (let l : int = strlen line in
+     skipSpaces i;
+     parseHour i l hf;
+     if not !errflag then
+       (skipSpaces i;
+        parseHour i l ht;
+        if not !errflag then add (Interval !d !hf !ht)));
+  if !errflag then incr errors
+
+let rec parse (u : unit) : unit =
+  let mutable line [80] : char in
+  read_string line;
+  incr linenum;
+  if strcmp line "EOF" = 0 then ()
+  else
+    (if isPrefix "From: " line then incr answers
+     else if !line[0] <> '\0' then parseInterval line;
+     parse u)
+
+let rec output (av : int) : unit =
+  print_string "All 2-hour intervals with availability of >= ";
+  print_int av;
+  print_string ":\n";
+  let count : int = find_interval duration !answers av in
+  if count = 0 then print_string "None exist, I\'m afraid...  :-(\n"
+  else if count = 1 then print_string "Only one exists.  Lucky you...  :-)\n"
+  else
+    (print_string "Look there, ";
+     print_int count;
+     print_string " found.  You even get to choose!  :-)\n");
+  if av > worst then
+    (print_string "Falling back to a smaller availability...\n";
+     print_string "---------------------------\n";
+     output (av - 1))
+
+let main : unit =
+  print_string "Parsing the input file... ";
+  parse ();
+  print_string "done.\n";
+  print_string "Answers: ";
+  print_int !answers;
+  print_string "\n";
+  print_string "Errors: ";
+  print_int !errors;
+  print_string "\n";
+  if !errors = 0 then
+    (if debug then
+       (print_string "---------------------------\n";
+        print_tree ());
+     print_string "---------------------------\n";
+     output availability)
