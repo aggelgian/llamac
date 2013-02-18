@@ -1,0 +1,13 @@
+# Compiled source #
+###################
+*.cmo
+*.cmx
+*.cmi
+*.cma
+Parser.ml
+Parser.mli
+Parser.output
+Scanner.ml
+llamac
+*.tar.gz
+.depend
