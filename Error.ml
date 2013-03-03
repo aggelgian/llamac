@@ -4,7 +4,7 @@ exception Terminate
 
 type verbose = Vquiet | Vnormal | Vverbose
 
-let flagVerbose = ref Vnormal
+let flagVerbose = ref Vnormal 
 
 let numErrors = ref 0
 let maxErrors = ref 10
