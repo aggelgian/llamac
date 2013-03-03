@@ -11,3 +11,4 @@ Scanner.ml
 llamac
 *.tar.gz
 .depend
+*~
