@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -e  # Exit if make fails
-make depend && make #&& make clean
-set +e  # Do not exit if any subsequent command fails
+#set -e  # Exit if make fails
+#make depend && make #&& make clean
+#set +e  # Do not exit if any subsequent command fails
 clear
 
 FLAGS=""
